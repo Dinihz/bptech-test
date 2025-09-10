@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -17,20 +17,25 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    const existingUser = await this.findByEmail(createUserDto.email);
+    if (existingUser) {
+      throw new ConflictException('This email address is alredy in use.');
+    }
+
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
       saltRounds,
     );
 
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    const newUser = new User();
+    newUser.name = createUserDto.name;
+    newUser.email = createUserDto.email;
+    newUser.password = hashedPassword;
 
-    const savedUser = await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(newUser);
 
-    const { password, ...result} = savedUser;
+    const { password: password, ...result } = savedUser;
     return result;
   }
 }
