@@ -2,11 +2,11 @@ import { User } from 'src/users/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'reservations' })
-export class Reservations {
+export class Reservation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'date' })
   date: Date;
 
   @Column({ type: 'timestamp with time zone' })
