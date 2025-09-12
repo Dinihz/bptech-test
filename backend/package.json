@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "engines": {
-    "node": "2o.19.5"
+    "node": "20.19.5"
   },
   "scripts": {
     "build": "nest build",
@@ -20,7 +20,17 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm:dev:nods": "ts-node -r tsconfig-paths/register -r reflect-metadata ./node_modules/typeorm/cli.js",
+    "typeorm:dev": "ts-node -r tsconfig-paths/register -r reflect-metadata ./node_modules/typeorm/cli.js -d ./src/data-source.ts",
+    "typeorm:prod": "node ./node_modules/typeorm/cli.js -d ./dist/data-source.js",
+    "migration:create": "npm run typeorm:dev:nods -- migration:create",
+    "migration:generate": "npm run typeorm:dev -- migration:generate",
+    "migration:run": "npm run typeorm:dev -- migration:run",
+    "migration:revert": "npm run typeorm:dev -- migration:revert",
+    "migration:generate:prod": "npm run typeorm:prod -- migration:generate",
+    "migration:run:prod": "npm run typeorm:prod -- migration:run",
+    "migration:revert:prod": "npm run typeorm:prod -- migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -34,6 +44,7 @@
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "dotenv": "^17.2.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
