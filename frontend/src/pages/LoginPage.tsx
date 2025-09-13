@@ -3,9 +3,11 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { AuthLayout } from '../layouts/AuthLayout';
+import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail ] = useState('');
   const [password, setPassword] = useState('');
@@ -25,17 +27,11 @@ export function LoginPage() {
     setError('');
 
     try {
-      const response = await api.post('/auth/login', {
-        email,
-        password,
-      });
+      const response = await api.post('/auth/login', { email, password})
+      const { access_token } = response.data
 
-      const { access_token } = response.data;
-      localStorage.setItem('authToken', access_token);
-
-      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-
-    navigate('/dashboard');
+      login(access_token);
+      navigate('/dashboard');
 
     } catch (err) {
       setError('E-mail ou senha inválidos.');
