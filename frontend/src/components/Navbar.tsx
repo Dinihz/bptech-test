@@ -1,14 +1,21 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate('/login');
+  }
 
   return (
     <nav className='bg-gray-800 text-white shadow-md'>
       <div className='max-w-9xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-16'>
-
           <div className='flex-shrink-0'>
             <Link to='/' className='text-2x1 font-bold text-white'>
               AgendFácil
@@ -17,15 +24,25 @@ export function Navbar() {
 
           <div className='hidden md:block'>
             <div className='ml-10 flex items-baseline space-x-4'>
+              {isAuthenticated ? (
+                <>
+              <Link to='/dashboard' className='hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium'>
+                Dashboard
+              </Link>
+              <button onClick={handleLogout} className='hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium'>
+                Logout
+              </button>
+                </>
+              ) : (
+                <>
               <Link to='/login' className='hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium'>
                 Login
               </Link>
               <Link to='/register' className='hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium'>
                 Cadastro
               </Link>
-              <Link to='/dashboard' className='hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium'>
-                Dashboard
-              </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -55,15 +72,25 @@ export function Navbar() {
       {isOpen && (
         <div className='md:hidden' id='mobile-menu'>
           <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3'>
-            <Link to='/login' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
-              Login
-            </Link>
-            <Link to='/register' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
-              Cadastro
-            </Link>
-            <Link to='/dashboard' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
-              Dashboard
-            </Link>
+              {isAuthenticated ? (
+                <>
+              <Link to='/dashboard' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
+                Dashboard
+              </Link>
+              <button onClick={logout} className='w-full text-left hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
+                Logout
+              </button>
+                </>
+              ) : (
+                <>
+              <Link to='/login' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
+                Login
+              </Link>
+              <Link to='/register' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
+                Cadastro
+              </Link>
+                </>
+              )}
           </div>
         </div>
       )}
