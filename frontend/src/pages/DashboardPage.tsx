@@ -21,7 +21,11 @@ type Reservation = {
 };
 
 type FormData = {
-  date: string; startTime: string; endTime: string; roomId: string;
+  id?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  roomId: string;
 };
 
 export function DashboardPage() {
@@ -32,6 +36,7 @@ export function DashboardPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({ date: '', startTime: '', endTime: '', roomId: ''});
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchReservations = () => {
     setIsLoading(true);
@@ -49,9 +54,24 @@ export function DashboardPage() {
   }, []);
 
   const openCreateModal = () => {
+    setIsEditing(false);
     setFormData({ date: '', startTime: '', endTime: '', roomId: '' })
     setIsModalOpen(true);
   };
+
+  const openEditModal = (reservation: Reservation) => {
+    setIsEditing(true);
+    const formatForInputl = (dateStr: string) => new Date(dateStr).toISOString().slice(0, 16);
+
+    setFormData({
+      id: reservation.id,
+      roomId: reservation.roomId,
+      date: new Date(reservation.date).toISOString().slice(0, 10),
+      startTime: formatForInputl(reservation.startTime),
+      endTime: formatForInputl(reservation.endTime),
+    });
+    setIsModalOpen(true);
+  }
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -64,22 +84,35 @@ export function DashboardPage() {
 
   const handleFormSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
+    const { id, ...payload } = formData;
+
+    const dataToSend = {
+      ...payload,
+      date: new Date(formData.date).toISOString(),
+      startTime: new Date(formData.startTime).toISOString(),
+      endTime: new Date(formData.endTime).toISOString(),
+    };
+
     try {
-      await api.post('/reservations', {
-        ...formData,
-        date: new Date(formData.date).toISOString(),
-        startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString(),
-      });
-      alert('Reserva criada com sucesso!');
+      if (isEditing) {
+        await api.patch(`/reservations/${id}`, dataToSend);
+        alert('Reserva atualizada com sucesso!');
+      } else {
+        await api.post(`/reservations`, dataToSend);
+        alert('Reserva criada com sucesso!')
+      }
+
       closeModal();
       fetchReservations();
+
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string | string[] }>;
       const message = Array.isArray(axiosError.response?.data.message)
       ? axiosError.response?.data.message.join(',')
       : axiosError.response?.data.message;
-      alert(`Erro ao criar a reserva: ${message || 'Verifique os dados e tente novamente.'}`);
+      const action = isEditing ? 'atualizar' : 'criar'
+      alert(`Erro ao ${action} a reserva: ${message || 'Verifique os dados e tente novamente.'}`);
     }
   }
 
@@ -141,7 +174,7 @@ export function DashboardPage() {
                     <td className='p-3'>
                     {user?.userId === res.user.id && (
                       <div className='flex gap-2'>
-                        <button className='text-yellow-400 hover:underline'>Editar</button>
+                        <button onClick={() =>openEditModal(res)} className='text-yellow-400 hover:underline'>Editar</button>
                         <button onClick={() => handleDelete(res.id)} className='text-red-500 hover:underline'>Cancelar</button>
                       </div>
                     )}
@@ -165,7 +198,7 @@ export function DashboardPage() {
         className='bg-gray-800 rounded-lg shadow-md p-8 text-white w-full max-w-lg mx-auto mt-20 outline-none'
         overlayClassName='fixed inset-0 bg-black bg-opacity-75 flex justify-center items-start pt-10'
       >
-        <h2 className='text-2xl font-bold mb-6'>Nova Reserva</h2>
+        <h2 className='text-2xl font-bold mb-6'>{isEditing ? 'Editar Reserva' : 'Criar Nova Reserva'}</h2>
         <form onSubmit={handleFormSubmit} className='flex flex-col gap-4'>
           <div>
             <label htmlFor="roomId" className='block text-sm font-medium text-white mb-1'>
