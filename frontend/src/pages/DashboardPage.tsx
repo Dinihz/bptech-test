@@ -34,9 +34,11 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({ date: '', startTime: '', endTime: '', roomId: ''});
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reservationToDelete, setReservationToDelete] = useState<string | null>(null);
 
   const fetchReservations = () => {
     setIsLoading(true);
@@ -56,7 +58,7 @@ export function DashboardPage() {
   const openCreateModal = () => {
     setIsEditing(false);
     setFormData({ date: '', startTime: '', endTime: '', roomId: '' })
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
 
   const openEditModal = (reservation: Reservation) => {
@@ -70,12 +72,14 @@ export function DashboardPage() {
       startTime: formatForInputl(reservation.startTime),
       endTime: formatForInputl(reservation.endTime),
     });
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   }
 
   const closeModal = () => {
-    setIsModalOpen(false);
+    setIsFormModalOpen(false);
   }
+
+  const closeFormModal = () => setIsFormModalOpen(false);
 
   const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -116,18 +120,29 @@ export function DashboardPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja cancelar esta reserva?')) {
-      try {
-        await api.delete(`/reservations/${id}`);
-        alert('Reserva cancelada com sucesso!')
-        fetchReservations();
-      } catch (err) {
-        alert('Erro ao cancelar a reserva. Tente novamente.');
-        console.error(err);
-      }
-    }
+  const openDeleteModal = (id: string) => {
+    setReservationToDelete(id);
+    setIsDeleteModalOpen(true);
   };
+
+  const closeDeleteModal = () => {
+    setReservationToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!reservationToDelete) return;
+    try {
+      await api.delete(`/reservations/${reservationToDelete}`);
+      alert('Reserva cancelada com sucesso.');
+      fetchReservations();
+    } catch (err) {
+      alert('Erro ao cancelar a reserva. Tente novamente.');
+      console.error(err);
+    } finally {
+      closeDeleteModal();
+    }
+  }
 
   if (isLoading) {
     return <p className='text-center text-white'>Carregando reservas...</p>;
@@ -140,7 +155,7 @@ export function DashboardPage() {
   return (
     <div className='text-white'>
       <div className="flex justify-between items-center mb-4">
-      <h1 className='text-3xl font-bold mb-6'>Dashboard de Reservas</h1>
+      <h1 className='text-3xl font-bold'>Dashboard de Reservas</h1>
       <button
         onClick={openCreateModal}
         className='bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded'
@@ -175,7 +190,7 @@ export function DashboardPage() {
                     {user?.userId === res.user.id && (
                       <div className='flex gap-2'>
                         <button onClick={() =>openEditModal(res)} className='text-yellow-400 hover:underline'>Editar</button>
-                        <button onClick={() => handleDelete(res.id)} className='text-red-500 hover:underline'>Cancelar</button>
+                        <button onClick={() => openDeleteModal(res.id)} className='text-red-500 hover:underline'>Cancelar</button>
                       </div>
                     )}
                     </td>
@@ -192,8 +207,8 @@ export function DashboardPage() {
       </div>
 
       <Modal
-        isOpen={isModalOpen}
-        onRequestClose={closeModal}
+        isOpen={isFormModalOpen}
+        onRequestClose={closeFormModal}
         contentLabel='Formulário de Reserva'
         className='bg-gray-800 rounded-lg shadow-md p-8 text-white w-full max-w-lg mx-auto mt-20 outline-none'
         overlayClassName='fixed inset-0 bg-black bg-opacity-75 flex justify-center items-start pt-10'
@@ -239,6 +254,24 @@ export function DashboardPage() {
             </button>
           </div>
         </form>
+      </Modal>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onRequestClose={closeDeleteModal}
+        contentLabel='Confirmar Cancelamento'
+        className='bg-gray-800 rounded-lg shadow-md p-8 text-white w-full max-w-md mx-auto mt-20 outline-none'
+        overlayClassName='fixed inset-0 bg-black bg-opacity-75 flex justify-center items-start pt-10'
+      >
+        <h2 className='text-2xl font-bold mb-4'>Confirmar Cancelamento</h2>
+        <p className='text-gray-300 mb-8'>Tem certeza que deseja cancelar esta reserva?</p>
+        <div className='flex justify-end gap-4'>
+          <button onClick={closeDeleteModal} className='bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded'>
+            Voltar
+          </button>
+          <button onClick={confirmDelete} className='bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded'>
+            Sim, Cancelar
+          </button>
+        </div>
       </Modal>
     </div>
   );
