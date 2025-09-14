@@ -17,7 +17,7 @@ export function Navbar() {
       <div className='max-w-9xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-16'>
           <div className='flex-shrink-0'>
-            <Link to='/' className='text-2x1 font-bold text-white'>
+            <Link to='/' className='text-2xl font-bold text-white'>
               AgendFácil
             </Link>
           </div>
