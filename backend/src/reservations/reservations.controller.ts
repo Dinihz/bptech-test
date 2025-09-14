@@ -32,8 +32,9 @@ export class ReservationsController {
     @Query('date') date?: string,
     @Query('roomId') roomId?: string,
     @Query('userId') userId?: string,
+    @Query('userName') userName?: string,
   ) {
-    const filters = { date, roomId, userId };
+    const filters = { date, roomId, userId, userName };
     return this.reservationsService.findAll(filters);
   }
 
@@ -61,6 +62,10 @@ export class ReservationsController {
     @Body() updateReservationDto: UpdateReservationDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.reservationsService.update(id, updateReservationDto, req.user.userId);
+    return this.reservationsService.update(
+      id,
+      updateReservationDto,
+      req.user.userId,
+    );
   }
 }
