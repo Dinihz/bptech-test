@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../services/api'
 import { AxiosError } from 'axios';
 import { AuthLayout } from '../layouts/AuthLayout';
+import { toast } from 'react-hot-toast';
 
 const EyeIcon = ({ closed }: { closed: boolean }) => (
   <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='w-6 h-6'>
@@ -33,11 +34,13 @@ export function RegisterPage() {
 
     if(!name || !email || !password || !confirmPassword) {
       setError('Por favor, preencha todos os campos.');
+      toast.error('Por favor, preencha todos os campos.');
       return;
     }
 
     if (password !== confirmPassword) {
       setError('As senhas não coincidem.');
+      toast.error('As senhas não coincidem.');
       return;
     }
 
@@ -45,23 +48,29 @@ export function RegisterPage() {
     setError('');
 
     try {
-      await api.post('/users', {
-        name,
-        email,
-        password
-      });
+      await toast.promise(
+        api.post('/users', { name, email, password }),
+        {
+          loading: 'Criando conta...',
+          success: 'Cadastro realizado com sucesso! Faça o login para continuar.',
+          error: (err) => {
+            const axiosError = err as AxiosError<{ message?: string } | undefined>;
+            const message = axiosError?.response?.data?.message;
+            return message || 'Não foi possível criar a conta. Tente novamente.';
+          },
+        }
+      );
 
-      alert('Cadstro realizado com sucesso! Faça o login para continuar.');
       navigate('/login');
 
     } catch (err) {
-      const axiosError = err as AxiosError<{ message: string }>;
+      const axiosError = err as AxiosError<{ message?: string }>;
       if (axiosError.response && axiosError.response.status === 409) {
-        setError(axiosError.response.data.message);
+        setError(axiosError.response.data?.message || 'E-mail já cadastrado.');
       } else {
-        setError('Ocorreru um erro ao tentar cadastrar. Tente novamente.');
+        setError('Ocorreu um erro ao tentar cadastrar. Tente novamente.');
       }
-      console.error('Erro de cadastro: ', err);
+      console.error('Erro de cadastro:', err);
     } finally {
       setIsLoading(false);
     }
