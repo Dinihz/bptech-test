@@ -70,6 +70,7 @@ export class ReservationsService {
     date?: string;
     roomId?: string;
     userId?: string;
+    userName?: string;
   }): Promise<Reservation[]> {
     const where: FindOptionsWhere<Reservation> = {};
 
@@ -79,8 +80,11 @@ export class ReservationsService {
     if (filters.userId) {
       where.user = { id: filters.userId } as any;
     }
+    if (filters.date) {
+      (where as any).date = filters.date as any;
+    }
 
-    return this.reservationsRepository.find({
+    const options: FindManyOptions<Reservation> = {
       where,
       relations: ['user'],
       select: {
@@ -95,7 +99,48 @@ export class ReservationsService {
           email: true,
         },
       },
-    });
+    };
+
+    if (filters.userName) {
+      (options.where as any) = {
+        ...options.where,
+        user: {
+          ...(filters.userId ? { id: filters.userId } : {}),
+          name: (filters.userName as any) && (typeof (filters.userName) === 'string' ? (filters.userName as any) : undefined),
+        },
+      } as any;
+
+      const qb = this.reservationsRepository
+        .createQueryBuilder('reservation')
+        .leftJoinAndSelect('reservation.user', 'user')
+        .select([
+          'reservation.id',
+          'reservation.date',
+          'reservation.startTime',
+          'reservation.endTime',
+          'reservation.roomId',
+          'user.id',
+          'user.name',
+          'user.email',
+        ]);
+
+      if (filters.roomId) {
+        qb.andWhere('reservation.roomId = :roomId', { roomId: filters.roomId });
+      }
+      if (filters.userId) {
+        qb.andWhere('user.id = :userId', { userId: filters.userId });
+      }
+      qb.andWhere('user.name ILIKE :userName', {
+        userName: `%${filters.userName}%`,
+      });
+      if (filters.date) {
+        qb.andWhere('reservation.date = :date', { date: filters.date });
+      }
+
+      return qb.getMany();
+    }
+
+    return this.reservationsRepository.find(options);
   }
 
   async findMyReservations(userId: string): Promise<Reservation[]> {
@@ -128,7 +173,9 @@ export class ReservationsService {
     }
 
     if (reservation.user.id !== userId) {
-      throw new ForbiddenException('You are not authorized to delete this reservation.');
+      throw new ForbiddenException(
+        'You are not authorized to delete this reservation.',
+      );
     }
 
     await this.reservationsRepository.delete(id);
@@ -136,7 +183,11 @@ export class ReservationsService {
     return { message: 'Reservation cancelled successfully.' };
   }
 
-   async update(id: string, updateReservationDto: UpdateReservationDto, userId: string) {
+  async update(
+    id: string,
+    updateReservationDto: UpdateReservationDto,
+    userId: string,
+  ) {
     const reservation = await this.reservationsRepository.findOne({
       where: { id },
       relations: ['user'],
@@ -147,7 +198,9 @@ export class ReservationsService {
     }
 
     if (reservation.user.id !== userId) {
-      throw new ForbiddenException('You are not authorized to edit this reservation.');
+      throw new ForbiddenException(
+        'You are not authorized to edit this reservation.',
+      );
     }
 
     const updatedReservation = Object.assign(reservation, updateReservationDto);
