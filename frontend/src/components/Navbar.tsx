@@ -9,6 +9,7 @@ export function Navbar() {
 
   function handleLogout() {
     logout();
+    setIsOpen(false);
     navigate('/login');
   }
 
@@ -77,7 +78,7 @@ export function Navbar() {
               <Link to='/dashboard' className='hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
                 Dashboard
               </Link>
-              <button onClick={logout} className='w-full text-left hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
+              <button onClick={handleLogout} className='w-full text-left hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium'>
                 Logout
               </button>
                 </>
