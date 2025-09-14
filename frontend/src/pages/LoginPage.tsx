@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { loginSchema } from '../schemas/authSchema';
 import type { LoginFormData } from '../schemas/authSchema';
 import api from '../services/api';
+import { PasswordInput } from '../components/PasswordInput';
 
 const loginUser = async (data: LoginFormData) => {
   const response = await api.post('/auth/login', data);
@@ -55,12 +56,10 @@ export function LoginPage() {
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
           </div>
 
-          <div>
-            <input
-              type="password"
-              placeholder="Senha"
-              {...register('password')}
-              className="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
+         <div>
+            <PasswordInput
+              placeholder="Confirme a Senha"
+              register={register('password')}
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           </div>

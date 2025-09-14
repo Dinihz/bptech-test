@@ -8,6 +8,7 @@ import { registerSchema } from '../schemas/authSchema';
 import type { RegisterFormData } from '../schemas/authSchema';
 import api from '../services/api';
 import { AxiosError } from 'axios';
+import { PasswordInput } from '../components/PasswordInput';
 
 const registerUser = async (data: RegisterFormData) => {
   const { name, email, password } = data;
@@ -69,21 +70,17 @@ export function RegisterPage() {
           </div>
 
           <div>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Senha"
-              {...register('password')}
-              className="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              register={register('password')}
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           </div>
 
           <div>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Confirme a Senha"
-              {...register('confirmPassword')}
-              className="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              register={register('password')}
             />
             {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
           </div>
