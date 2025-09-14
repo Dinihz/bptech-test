@@ -3,6 +3,7 @@ import api from "../services/api";
 import toast from "react-hot-toast";
 import type { Reservation } from "../types/reservation";
 import type { ReservationFormData } from "../schemas/reservationSchema";
+import axios from "axios";
 
 interface ReservationFilters {
   roomId?: string;
@@ -25,24 +26,30 @@ const fetchReservations = async (viewMode: 'all' | 'mine', filters: ReservationF
     }
   }
 
-  const { data } = await api.get(url);
+  const { data } = await api.get<Reservation[]>(url);
   return data;
 };
 
-const createReservation = (data: ReservationFormData) => api.post('/reservations', data);
-const updateReservation = ({ id, data }: { id: string; data: ReservationFormData }) => api.patch(`/reservations/${id}`, data);
-const deleteReservation = (id: string) => api.delete(`/reservations/${id}`);
+const createReservation = (data: ReservationFormData) => api.post<Reservation>('/reservations', data);
+const updateReservation = ({ id, data }: { id: string; data: ReservationFormData }) => api.patch<Reservation>(`/reservations/${id}`, data);
+const deleteReservation = (id: string) => api.delete<{ message: string }>(`/reservations/${id}`);
 
 export function useReservations(viewMode: 'all' | 'mine', filters: ReservationFilters) {
   const queryClient = useQueryClient();
 
   const extractErrorMessage = (error: unknown): string => {
-    const anyErr = error as any;
-    const rawMessage = anyErr?.response?.data?.message ?? anyErr?.message ?? 'Ocorreu um erro ao processar sua solicitação.';
-    if (Array.isArray(rawMessage)) {
-      return rawMessage.join(', ');
+    if (axios.isAxiosError(error)) {
+      type ErrorResponse = { message?: string | string[] } | undefined;
+      const data = error.response?.data as ErrorResponse;
+      const rawMessage = data?.message ?? error.message;
+      if (Array.isArray(rawMessage)) return rawMessage.join(', ');
+      if (typeof rawMessage === 'string') return rawMessage;
+      return 'Ocorreu um erro ao processar sua solicitação.';
     }
-    return String(rawMessage);
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return 'Ocorreu um erro ao processar sua solicitação.';
   };
 
   const { data: reservations, isLoading, isError } = useQuery({
