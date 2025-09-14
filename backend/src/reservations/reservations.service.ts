@@ -75,13 +75,14 @@ export class ReservationsService {
     const where: FindOptionsWhere<Reservation> = {};
 
     if (filters.roomId) {
-      where.roomId = filters.roomId as any;
+      where.roomId = filters.roomId as unknown as Reservation['roomId'];
     }
     if (filters.userId) {
-      where.user = { id: filters.userId } as any;
+      where.user = { id: filters.userId } as Reservation['user'];
     }
     if (filters.date) {
-      (where as any).date = filters.date as any;
+      (where as Pick<Reservation, 'date'>).date =
+        filters.date as unknown as Reservation['date'];
     }
 
     const options: FindManyOptions<Reservation> = {
@@ -102,13 +103,16 @@ export class ReservationsService {
     };
 
     if (filters.userName) {
-      (options.where as any) = {
+      (options.where as FindOptionsWhere<Reservation>) = {
         ...options.where,
         user: {
           ...(filters.userId ? { id: filters.userId } : {}),
-          name: (filters.userName as any) && (typeof (filters.userName) === 'string' ? (filters.userName as any) : undefined),
+          name:
+            typeof filters.userName === 'string'
+              ? (filters.userName as unknown as Reservation['user']['name'])
+              : undefined,
         },
-      } as any;
+      } as FindOptionsWhere<Reservation>;
 
       const qb = this.reservationsRepository
         .createQueryBuilder('reservation')
