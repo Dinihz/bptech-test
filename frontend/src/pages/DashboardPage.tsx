@@ -88,6 +88,13 @@ export function DashboardPage() {
   };
 
   const formatForInput = (dateStr: string) => new Date(dateStr).toISOString().slice(0, 16);
+  const formatDateDisplay = (dateStr: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
 
   if (isLoading) return <p className="text-center text-white">Carregando...</p>;
   if (isError) return <p className="text-center text-red-500">Erro ao carregar reservas.</p>;
@@ -127,7 +134,7 @@ export function DashboardPage() {
               {reservations?.map(res => (
                 <tr key={res.id} className="border-b border-gray-700 hover:bg-gray-700">
                   <td className="p-3">{res.roomId}</td>
-                  <td className="p-3">{typeof (res as any).date === 'string' ? (res as any).date.split('-').reverse().join('/') : new Date((res as any).date).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3">{formatDateDisplay(res.date)}</td>
                   <td className="p-3">
                     {new Date(res.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {new Date(res.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </td>
