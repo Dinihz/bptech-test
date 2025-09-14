@@ -4,6 +4,7 @@ import Modal from 'react-modal'
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { AxiosError } from 'axios';
+import toast from 'react-hot-toast';
 
 Modal.setAppElement('#root')
 
@@ -75,10 +76,6 @@ export function DashboardPage() {
     setIsFormModalOpen(true);
   }
 
-  const closeModal = () => {
-    setIsFormModalOpen(false);
-  }
-
   const closeFormModal = () => setIsFormModalOpen(false);
 
   const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -88,36 +85,31 @@ export function DashboardPage() {
 
   const handleFormSubmit = async (event: FormEvent) => {
     event.preventDefault();
-
-    const { id, ...payload } = formData;
-
-    const dataToSend = {
-      ...payload,
+    const { id } = formData;
+    const payload = {
+      roomId: formData.roomId,
       date: new Date(formData.date).toISOString(),
       startTime: new Date(formData.startTime).toISOString(),
       endTime: new Date(formData.endTime).toISOString(),
     };
-
+    const request = isEditing
+      ? api.patch(`/reservations/${id}`, payload)
+      : api.post('/reservations', payload);
     try {
-      if (isEditing) {
-        await api.patch(`/reservations/${id}`, dataToSend);
-        alert('Reserva atualizada com sucesso!');
-      } else {
-        await api.post(`/reservations`, dataToSend);
-        alert('Reserva criada com sucesso!')
-      }
-
-      closeModal();
+      await toast.promise(request, {
+        loading: 'Salvando...',
+        success: `Reserva ${isEditing ? 'atualizada' : 'criada'} com sucesso!`,
+        error: (err) => {
+          const axiosError = err as AxiosError<{ message: string | string[] }>;
+          const message = Array.isArray(axiosError.response?.data.message)
+            ? axiosError.response?.data.message.join(', ')
+            : axiosError.response?.data.message;
+          return `Erro: ${message || 'Tente novamente.'}`;
+        },
+      });
+      closeFormModal();
       fetchReservations();
-
-    } catch (err) {
-      const axiosError = err as AxiosError<{ message: string | string[] }>;
-      const message = Array.isArray(axiosError.response?.data.message)
-      ? axiosError.response?.data.message.join(',')
-      : axiosError.response?.data.message;
-      const action = isEditing ? 'atualizar' : 'criar'
-      alert(`Erro ao ${action} a reserva: ${message || 'Verifique os dados e tente novamente.'}`);
-    }
+    } catch (_err) {}
   }
 
   const openDeleteModal = (id: string) => {
@@ -132,13 +124,15 @@ export function DashboardPage() {
 
   const confirmDelete = async () => {
     if (!reservationToDelete) return;
+    const request = api.delete(`/reservations/${reservationToDelete}`);
     try {
-      await api.delete(`/reservations/${reservationToDelete}`);
-      alert('Reserva cancelada com sucesso.');
+      await toast.promise(request, {
+        loading: 'Cancelando...',
+        success: 'Reserva cancelada com sucesso!',
+        error: 'Não foi possível cancelar a reserva.',
+      });
       fetchReservations();
-    } catch (err) {
-      alert('Erro ao cancelar a reserva. Tente novamente.');
-      console.error(err);
+    } catch (_err) {
     } finally {
       closeDeleteModal();
     }
@@ -246,7 +240,7 @@ export function DashboardPage() {
           </div>
 
           <div className='flex justify-end gap-4 mt-6'>
-            <button type='button' onClick={closeModal} className='bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded'>
+            <button type='button' onClick={closeFormModal} className='bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded'>
               Cancelar
             </button>
             <button type='submit' className='bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded'>
