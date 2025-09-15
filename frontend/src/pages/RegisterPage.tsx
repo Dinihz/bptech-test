@@ -80,7 +80,7 @@ export function RegisterPage() {
           <div>
             <PasswordInput
               placeholder="Confirme a Senha"
-              register={register('password')}
+              register={register('confirmPassword')}
             />
             {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
           </div>
