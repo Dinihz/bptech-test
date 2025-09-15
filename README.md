@@ -42,13 +42,34 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
     cd bptech-test
     ```
 
-2.  **Configure as Variáveis de Ambiente**
+2.  **Instale as Dependências**
+
+    É necessário instalar as dependências tanto para o backend quanto para o frontend.
+
+    - **Instalando dependências do Backend:**
+
+      ```bash
+      cd backend
+      npm install
+      ```
+
+    - **Instalando dependências do Frontend:**
+      ```bash
+      cd ../frontend
+      npm install
+      ```
+    - **Volte para a raiz do projeto antes de continuar:**
+      ```bash
+      cd ..
+      ```
+
+3.  **Configure as Variáveis de Ambiente**
 
     - Copie o arquivo `.env.example` para `.env` na raiz do projeto e preencha as variáveis do banco de dados (`DB_PASSWORD`, etc.).
     - Copie o arquivo `backend/.env.example` para `backend/.env` e preencha o `JWT_SECRET`.
     - Copie o arquivo `frontend/.env.example` para `frontend/.env`.
 
-3.  **Inicie os Contêineres**
+4.  **Inicie os Contêineres**
     Este comando irá construir as imagens do backend e frontend, e iniciar todos os serviços.
     ```bash
     docker-compose up --build
@@ -57,6 +78,8 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
     - A **API** do backend (para testes com Postman) estará acessível em: `http://localhost:3000/api`
 
 ## Como Rodar os Testes do Backend
+
+**Importante:** Garanta que as dependências do backend foram instaladas (`cd backend && npm install`).
 
 ### Testes Unitários
 
@@ -73,14 +96,14 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
     npm run test:watch
     ```
 
-### Testes de Integração
+### Testes de Integração (E2E)
 
-1.  Garanta que o ambiente Docker esteja rodando:
+1.  Garanta que o ambiente Docker esteja rodando (pelo menos o banco de dados):
     ```bash
     # Na raiz do projeto
-    docker-compose up -d
+    docker-compose up -d postgres
     ```
-2.  Navegue até a pasta do backend:
+2.  Navegue até a pasta do backend (se não estiver lá):
     ```bash
     cd backend
     ```
