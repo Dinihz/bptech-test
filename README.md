@@ -33,12 +33,12 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas:
 - Node.js (versão 20.x ou superior)
 - Docker e Docker Compose
 
-## 🏁 Como Executar o Projeto Completo
+## Como Executar o Projeto Completo
 
 1.  **Clone o Repositório**
 
     ```bash
-    git clone <url-do-seu-repositorio>
+    git clone https://github.com/Dinihz/bptech-test.git
     cd bptech-test
     ```
 
